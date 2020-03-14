@@ -6,3 +6,4 @@ Pin2: Photo diode input.
 
 [HoodLoader2](https://github.com/NicoHood/HoodLoader2)
 
+It's prototype.
