@@ -43,8 +43,8 @@ def procmain():
 
     device.close()
     
-#t = threading.Thread(target=procmain, args=())
-#t.start()
+t = threading.Thread(target=procmain, args=())
+t.start()
 
-procmain()
+#procmain()
 
