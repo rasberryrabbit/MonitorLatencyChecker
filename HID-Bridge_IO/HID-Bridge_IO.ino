@@ -6,25 +6,48 @@
  Board: HoodLoader2 UNO
 */
 
-int keystart=8;
 int photo=2;
-unsigned long st,et;
 int flag=0;
+int sertrig=0;
+unsigned long st,et;
 int old=LOW;
 char buf[16];
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(2000000);
 
-  pinMode(keystart, INPUT);
   pinMode(photo, INPUT);
 }
 
 void loop() {
-  if((!flag)&&Serial.available()) {
+  if(flag) {
+    if(digitalRead(photo)!=old) {
+      et=micros();
+      flag=0;
+      if(old) {
+        buf[0]='F';
+      } else {
+        buf[0]='T';
+      }
+      snprintf(&buf[1],15,"%012d",et-st);
+      Serial.write(buf,16);
+    }
+  } else {
+    if(sertrig) {
+      sertrig=0;
+      serialEvent();
+    }
+  }
+}
+
+void serialEvent() {
+  if(flag) {
+    sertrig=1;
+  } else
+  if(Serial.available()) {
+    st=micros();
     Serial.readBytes(buf,16);
     if(memcmp(buf,"BG",2)==0) {
-      st=millis();
       if(buf[2]=='0') {
         old=0;
       } else if(buf[2]=='1') {
@@ -35,14 +58,6 @@ void loop() {
       flag=1;
     } else {
       Serial.write("OK");
-    }
-  }
-  if(flag) {
-    if(digitalRead(photo)!=old) {
-      et=millis();
-      flag=0;
-      snprintf(buf,16,"%012d",et-st);
-      Serial.write(buf,16);
     }
   }
 }
