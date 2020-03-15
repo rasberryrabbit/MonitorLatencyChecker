@@ -7,11 +7,11 @@ import re
 def receiving(ser):
   while 1:
     buf=''
-    ser.write(b'IOBG')
+    ser.write(b'IOBGn')
     while ser.inWaiting()>0:
       buf+=ser.read()
     if buf!='':
-      res=re.findall('IOED(\d+)',buf)
+      res=re.findall('IOED[T,F](\d+)',buf)
       for it in res:
         print(it)
     sleep(0.05)

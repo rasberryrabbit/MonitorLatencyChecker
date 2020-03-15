@@ -36,16 +36,16 @@ void loop() {
      Do not using short length data, it make corrupt USB serial data.
   */
   int readAvailable = Serial1.available();
-  // "IOED", 4Bytes+
-  if (readAvailable >= 4) {
+  // "IOED"n, 5Bytes+
+  if (readAvailable >= 5) {
     et=micros();
 
     int writeAvailable = Serial.availableForWrite();
 
-    // "IOED"+nnnnnn, 4Bytes+Micro Second Timing
-    int i=snprintf(tmp,sizeof(tmp),"%.12d",et-st);
+    // "IOED"+n+nnnnnn, 4Bytes+IO state+Micro Second Timing, length must be 16Bytes.
+    int i=snprintf(tmp,sizeof(tmp),"%.11d",et-st);
     
-    if (writeAvailable >= 4+i) {
+    if (writeAvailable >= 5+i) {
 
       // Write maximum one EP_SIZE to not block with Zero Length packets
       uint8_t buff[USB_EP_SIZE - 1];
@@ -73,13 +73,13 @@ void loop() {
    Send serial signal to IO
   */
   readAvailable = Serial.available();
-  // "IOBG", 4Bytes+
-  if (readAvailable >= 4) {
+  // "IOBG"n, 5Bytes+
+  if (readAvailable >= 5) {
     st=micros();
 
     int writeAvailable = Serial1.availableForWrite();
-    // "IOBG"
-    if (writeAvailable >= 4) {
+    // "IOBG"n
+    if (writeAvailable >= 5) {
 
       // Write maximum one EP_SIZE to not block with Zero Length packets
       if (readAvailable > (USB_EP_SIZE - 1))
