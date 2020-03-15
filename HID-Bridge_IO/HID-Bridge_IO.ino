@@ -2,59 +2,47 @@
  Serial Monitor latency checker HID IO
  Pin 2 = Photo Diode
  Pin 4 = Indicator LED
+ Pin 8 = Key start
  Board: HoodLoader2 UNO
 */
 
+int keystart=8;
+int photo=2;
+unsigned long st,et;
 int flag=0;
-int PinRead=2;
-int PinWrite=4;
-char buf[6];
-char obuf[6];
-int PinState=0;
+int old=LOW;
+char buf[16];
 
 void setup() {
-  // Serial Baud for USB <-> IO
-  Serial.begin(2000000);
-  // Pin setup
-  pinMode(PinRead, INPUT);
-  pinMode(PinWrite, OUTPUT);
-  digitalWrite(PinWrite, LOW);
-  obuf[0]='I';
-  obuf[1]='O';
-  obuf[2]='E';
-  obuf[3]='D';
+  Serial.begin(115200);
+
+  pinMode(keystart, INPUT);
+  pinMode(photo, INPUT);
 }
 
 void loop() {
-  // start signal from USB, "IOBG"n
-  if(Serial.available()>=5) {
-    if((Serial.readBytes(buf,5)==5) && (memcmp(buf,"IOBG",4)==0)) {
-      while(Serial.available()) {
-        Serial.read();
-      }
-      if(buf[4]=='0') {
-        PinState=LOW;
-      } else if(buf[4]=='1') {
-        PinState=HIGH;
+  if((!flag)&&Serial.available()) {
+    Serial.readBytes(buf,16);
+    if(memcmp(buf,"BG",2)==0) {
+      st=millis();
+      if(buf[2]=='0') {
+        old=0;
+      } else if(buf[2]=='1') {
+        old=1;
       } else {
-        PinState=digitalRead(PinRead);
+        old=digitalRead(photo);
       }
       flag=1;
-      digitalWrite(PinWrite, LOW);
+    } else {
+      Serial.write("OK");
     }
   }
-  // check photo diode and send signal to USB
   if(flag) {
-    char c;
-    if(digitalRead(PinRead)!=PinState) {
-      if(PinState==LOW) {
-        obuf[4]='T';
-      } else {
-        obuf[4]='F';
-      }
-      Serial.write(obuf,5);
+    if(digitalRead(photo)!=old) {
+      et=millis();
       flag=0;
-      digitalWrite(PinWrite, HIGH);
+      snprintf(buf,16,"%012d",et-st);
+      Serial.write(buf,16);
     }
   }
 }
