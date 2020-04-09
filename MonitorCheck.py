@@ -3,8 +3,8 @@ import time
 import threading
 
 
-vendor=0x2341
-pid=0x484c
+vendor=0x1b4f
+pid=0x9206
 
 start=0
 
@@ -28,11 +28,11 @@ def procmain():
     out_report = device.find_output_reports()
 
     while 1:
-      buffer = [0x0]*17
+      buffer = [0x0]*65
       buffer[0]=0x00
       buffer[1]=0x42 #B
       buffer[2]=0x47 #G
-      buffer[3]=0x32 #'0' or '1' or any
+      buffer[3]=0x30 #'0' or '1' or any
 
       out_report[0].set_raw_data(buffer)
       out_report[0].send()
