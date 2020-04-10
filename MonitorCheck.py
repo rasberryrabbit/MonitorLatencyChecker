@@ -32,7 +32,7 @@ def procmain():
       buffer[0]=0x00
       buffer[1]=0x42 #B
       buffer[2]=0x47 #G
-      buffer[3]=0x30 #'0' or '1' or any
+      buffer[3]=0x31 #'0' or '1' or any
 
       out_report[0].set_raw_data(buffer)
       out_report[0].send()
