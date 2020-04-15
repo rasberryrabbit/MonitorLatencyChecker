@@ -1,13 +1,13 @@
+#include <HID-Project.h>
+#include <HID-Settings.h>
+
 /* 
  *  firmware for arduino pro micro
  *  8pin = photodiode input.
  *  
  */
 
-#include <HID-Project.h>
-#include <HID-Settings.h>
-
-const int pinLed = LED_BUILTIN;
+const int pinLed = LED_BUILTIN; //
 uint8_t rawhidData[64];
 uint8_t obuf[64];
 
@@ -24,6 +24,23 @@ void setup() {
 
 void loop() {
   if(flag==0) {
+    if(Serial.available()) {
+      st=micros();
+      Serial.readBytes(rawhidData,3);
+      if(memcmp(rawhidData,"BG",2)==0) {
+        if(rawhidData[2]=='0') {
+          old=0;
+        } else if(rawhidData[2]=='1') {
+          old=1;
+        } else {
+          old=digitalRead(photo);
+        }
+        flag=1;
+      } else {
+        // serial print
+        Serial.write("OK\n");
+      }
+    } else
     if(RawHID.available()) {
       st=micros();
       RawHID.readBytes(rawhidData,64);
