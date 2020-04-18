@@ -68,7 +68,7 @@ void loop() {
       } else {
         obuf[0]='T';
       }
-      snprintf(&obuf[1],64,"%012d",et-st);      
+      snprintf(&obuf[1],64,"%012ld",et-st);      
       RawHID.write(obuf,64);
       // serial print
       Serial.write(obuf,64);
