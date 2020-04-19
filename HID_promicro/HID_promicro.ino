@@ -74,10 +74,9 @@ void loop() {
       Serial.write(obuf,64);
       Serial.println("");
     }
-    // empty buffer
     while(Serial.available())
       Serial.read();
     while(RawHID.available())
-      RawHID.read();      
+      RawHID.read();
   }
 }
