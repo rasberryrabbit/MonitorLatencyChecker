@@ -39,6 +39,7 @@ void loop() {
       } else {
         // serial print
         Serial.write("OK\n");
+        RawHID.write("OK");
       }
     } else
     if(RawHID.available()) {
@@ -55,7 +56,6 @@ void loop() {
         flag=1;
       } else {
         RawHID.write("OK");
-        // serial print
         Serial.write("OK\n");
       }
     }
