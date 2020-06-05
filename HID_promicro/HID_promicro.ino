@@ -25,9 +25,9 @@ void setup() {
 void loop() {
   if(flag==0) {
     if(Serial.available()) {
-      st=micros();
       Serial.readBytes(rawhidData,3);
-      if(memcmp(rawhidData,"BG",2)==0) {
+      st=micros();
+      if(rawhidData[0]=='B' && rawhidData[1]=='G') {
         if(rawhidData[2]=='0') {
           old=0;
         } else if(rawhidData[2]=='1') {
@@ -41,11 +41,14 @@ void loop() {
         Serial.write("OK\n");
         RawHID.write("OK");
       }
+      // remove unused chars
+      while(Serial.available())
+        Serial.read();
     } else
     if(RawHID.available()) {
-      st=micros();
       RawHID.readBytes(rawhidData,64);
-      if(memcmp(rawhidData,"BG",2)==0) {
+      st=micros();
+      if(rawhidData[0]=='B' && rawhidData[1]=='G') {
         if(rawhidData[2]=='0') {
           old=0;
         } else if(rawhidData[2]=='1') {
@@ -58,6 +61,9 @@ void loop() {
         RawHID.write("OK");
         Serial.write("OK\n");
       }
+      // remove unused chars
+      while(RawHID.available())
+        RawHID.read();
     }
   } else {
     if(digitalRead(photo)!=old) {
@@ -74,6 +80,7 @@ void loop() {
       Serial.write(obuf,64);
       Serial.println("");
     }
+    // skip input chars on waiting
     while(Serial.available())
       Serial.read();
     while(RawHID.available())
