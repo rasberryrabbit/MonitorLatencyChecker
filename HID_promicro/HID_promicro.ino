@@ -34,21 +34,18 @@ void loop() {
               Serial.readBytes(&rawData[2],5);
               rawData[7]=0;
               mx=atoi(&rawData[2]);
-              Serial.println(mx);
               break;
           case 'Y': 
               Serial.readBytes(&rawData[2],5);
               rawData[7]=0;
               my=atoi(&rawData[2]);
-              Serial.println(my);
               break;
           case 'T': 
               Mouse.move(mx,my);
-              delay(100);
               flag=1;
               old=digitalRead(photo);
+              st=micros();              
               Mouse.click();
-              st=micros();
               break;
           default:
               Serial.println("OK");
