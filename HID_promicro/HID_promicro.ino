@@ -1,3 +1,8 @@
+#include <PinChangeInterrupt.h>
+#include <PinChangeInterruptBoards.h>
+#include <PinChangeInterruptPins.h>
+#include <PinChangeInterruptSettings.h>
+
 #include <HID-Project.h>
 #include <HID-Settings.h>
 
@@ -17,11 +22,13 @@ unsigned long st,et;
 int old=LOW;
 int mx=0;
 int my=0;
+int changed=0;
 
 void setup() {
   pinMode(photo, INPUT);
   Serial.begin(115200);
   Mouse.begin();
+  attachPCINT(digitalPinToPCINT(photo), pinchanged, CHANGE);
 }
 
 void loop() {
@@ -42,9 +49,10 @@ void loop() {
               break;
           case 'T': 
               Mouse.move(mx,my);
-              flag=1;
               old=digitalRead(photo);
-              st=micros();              
+              changed=0;
+              flag=1;
+              st=micros();
               Mouse.click();
               break;
           default:
@@ -58,8 +66,7 @@ void loop() {
         Serial.read();
     }
   } else {
-    if(digitalRead(photo)!=old) {
-      et=micros();
+    if(changed==1) {
       flag=0;
       if(old) {
         obuf[0]='F';
@@ -74,5 +81,13 @@ void loop() {
     // skip input chars on waiting
     while(Serial.available())
       Serial.read();
+  }
+}
+
+void pinchanged(void) {
+  if(flag) {
+    et=micros();
+    changed=1;
+    old=digitalRead(photo);
   }
 }
