@@ -8,48 +8,40 @@
  */
 
 const int pinLed = LED_BUILTIN; //
-uint8_t rawData[32];
+uint8_t rawData[64];
 uint8_t obuf[64];
 
 int photo=8;
+int trig=9;
 int flag=0;
 unsigned long st,et;
 int old=LOW;
-int mx=0;
-int my=0;
 
 void setup() {
   pinMode(photo, INPUT);
+  pinMode(trig, INPUT_PULLUP);
   Serial.begin(115200);
   Mouse.begin();
 }
 
 void loop() {
   if(flag==0) {
+    // pin 9 manual trigger
+    if(digitalRead(trig)==0) {
+      old=digitalRead(photo);
+      flag=1;
+      Mouse.click();
+      st=micros();
+      Serial.println("Trigger");
+    } else
+    // serial trigger
     if(Serial.available()) {
       Serial.readBytes(rawData,2);
-      if(rawData[0]=='M') {
-        switch(rawData[1]) {
-          case 'X': 
-              Serial.readBytes(&rawData[2],5);
-              rawData[7]=0;
-              mx=atoi(&rawData[2]);
-              break;
-          case 'Y': 
-              Serial.readBytes(&rawData[2],5);
-              rawData[7]=0;
-              my=atoi(&rawData[2]);
-              break;
-          case 'T': 
-              Mouse.move(mx,my);
-              old=digitalRead(photo);
-              flag=1;
-              Mouse.click();
-              st=micros();
-              break;
-          default:
-              Serial.println("OK");
-        }
+      if(rawData[0]=='M' && rawData[1]=='T') {
+        old=digitalRead(photo);
+        flag=1;
+        Mouse.click();
+        st=micros();
       } else {
         Serial.println("OK");
       }
@@ -63,9 +55,9 @@ void loop() {
       flag=0;
       old=digitalRead(photo);
       if(old) {
-        obuf[0]='F';
-      } else {
         obuf[0]='T';
+      } else {
+        obuf[0]='F';
       }
       snprintf(&obuf[1],64,"%012ld",et-st);
       st=et;
