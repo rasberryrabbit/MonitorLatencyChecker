@@ -1,0 +1,20 @@
+object FormFace: TFormFace
+  Left = 506
+  Height = 527
+  Top = 173
+  Width = 788
+  Caption = 'FormFace'
+  ClientHeight = 527
+  ClientWidth = 788
+  OnCreate = FormCreate
+  LCLVersion = '2.1.0.0'
+  object OpenGLControl1: TOpenGLControl
+    Left = 0
+    Height = 527
+    Top = 0
+    Width = 788
+    Align = alClient
+    AutoResizeViewport = True
+    OnPaint = OpenGLControl1Paint
+  end
+end
