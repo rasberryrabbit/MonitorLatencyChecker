@@ -10,14 +10,15 @@
 
 const int pinLed = LED_BUILTIN; //
 uint8_t rawData[64];
-uint8_t obuf[64];
+uint8_t obuf[16];
 
 int photo=8;
 int trig=9;
 int flag=0;
 unsigned long st,et;
+unsigned long re;
 int old=LOW;
-int tr_enable=0;
+int tr_enable=1;
 int trigger_delay=200;
 unsigned long lt,ct;
 
@@ -26,21 +27,15 @@ void setup() {
   pinMode(trig, INPUT_PULLUP);
   Serial.begin(115200);
   Mouse.begin();
+  tr_enable=digitalRead(trig);
   lt=millis();
 }
 
 void loop() {
-  // toggle trigger
-  if(digitalRead(trig)==0) {
-    tr_enable=!tr_enable;
-    // reset wait condition
-    if(!tr_enable) {
-      flag=0;
-    }
-  }
+  tr_enable=digitalRead(trig);
   if(!flag) {
     // start trigger
-    if(tr_enable) {
+    if(!tr_enable) {
       ct=millis();
       if(ct-lt>=trigger_delay) {
         lt=ct;
@@ -49,9 +44,13 @@ void loop() {
         Mouse.click();
         st=micros();
       }
-    } 
-    while(Serial.available()) {
-      Serial.read();
+    }
+    // read serial
+    if(Serial.available()) {
+      while(Serial.available()) {
+        Serial.read();
+      }
+      Serial.println("OK");
     }
   } else {
     // wait changes
@@ -64,10 +63,10 @@ void loop() {
       } else {
         obuf[0]='F';
       }
-      snprintf(&obuf[1],64,"%012ld",et-st);
-      st=et;
+      re=et-st;
+      snprintf(&obuf[1],16,"%012ld",re);
       // serial print
-      Serial.write(obuf,64);
+      Serial.write(obuf,16);
     }
   }
 }
