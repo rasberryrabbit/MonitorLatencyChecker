@@ -18,7 +18,7 @@ L Device:R_US R1
 U 1 1 5ED76E27
 P 2750 2600
 F 0 "R1" H 2818 2646 50  0000 L CNN
-F 1 "22k" H 2818 2555 50  0000 L CNN
+F 1 "47k" H 2818 2555 50  0000 L CNN
 F 2 "" V 2790 2590 50  0001 C CNN
 F 3 "~" H 2750 2600 50  0001 C CNN
 	1    2750 2600
@@ -46,32 +46,8 @@ F 3 "http://www.ti.com/lit/ds/symlink/lm2904-n.pdf" H 3700 2700 50  0001 C CNN
 	3    3700 2700
 	1    0    0    -1  
 $EndComp
-Text GLabel 3000 1950 0    50   Input ~ 0
-SEN080605
-$Comp
-L power:VCC #PWR01
-U 1 1 5ED80F3F
-P 2750 2300
-F 0 "#PWR01" H 2750 2150 50  0001 C CNN
-F 1 "VCC" H 2767 2473 50  0000 C CNN
-F 2 "" H 2750 2300 50  0001 C CNN
-F 3 "" H 2750 2300 50  0001 C CNN
-	1    2750 2300
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR02
-U 1 1 5ED81809
-P 2750 3250
-F 0 "#PWR02" H 2750 3000 50  0001 C CNN
-F 1 "GND" H 2755 3077 50  0000 C CNN
-F 2 "" H 2750 3250 50  0001 C CNN
-F 3 "" H 2750 3250 50  0001 C CNN
-	1    2750 3250
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	2750 2300 2750 2400
+Text GLabel 3000 1650 0    50   Input ~ 0
+AmbientSensor_Out
 Wire Wire Line
 	2750 2750 2750 2800
 Wire Wire Line
@@ -82,15 +58,11 @@ Wire Wire Line
 Wire Wire Line
 	3400 2600 3200 2600
 Wire Wire Line
-	3200 2600 3200 1950
-Wire Wire Line
-	3200 1950 3000 1950
-Wire Wire Line
 	2750 3150 2750 3200
-Text GLabel 4250 2700 2    50   Output ~ 0
-Arduino
+Text GLabel 4450 2700 2    50   Output ~ 0
+Arduino_8
 Wire Wire Line
-	4000 2700 4250 2700
+	4000 2700 4450 2700
 Wire Wire Line
 	3600 2400 2750 2400
 Connection ~ 2750 2400
@@ -101,8 +73,6 @@ Wire Wire Line
 Wire Wire Line
 	3600 3200 2750 3200
 Connection ~ 2750 3200
-Wire Wire Line
-	2750 3200 2750 3250
 Text Label 3050 2800 0    50   ~ 0
 0.35V
 $Comp
@@ -116,4 +86,57 @@ F 3 "~" H 2750 3000 50  0001 C CNN
 	1    2750 3000
 	0    -1   -1   0   
 $EndComp
+$Comp
+L Device:R_US R2
+U 1 1 605C4E0F
+P 2450 2600
+F 0 "R2" H 2518 2646 50  0000 L CNN
+F 1 "47k" H 2518 2555 50  0000 L CNN
+F 2 "" V 2490 2590 50  0001 C CNN
+F 3 "~" H 2450 2600 50  0001 C CNN
+	1    2450 2600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2750 2800 2450 2800
+Wire Wire Line
+	2450 2800 2450 2750
+Wire Wire Line
+	2450 2450 2450 2400
+Wire Wire Line
+	2450 2400 2750 2400
+$Comp
+L Switch:SW_Push SW1
+U 1 1 605C68E3
+P 4100 3200
+F 0 "SW1" H 4100 3485 50  0000 C CNN
+F 1 "SW_Mouse" H 4100 3394 50  0000 C CNN
+F 2 "" H 4100 3400 50  0001 C CNN
+F 3 "~" H 4100 3400 50  0001 C CNN
+	1    4100 3200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3900 3200 3600 3200
+Connection ~ 3600 3200
+Text GLabel 4450 3200 2    50   Output ~ 0
+Arduino_9
+Wire Wire Line
+	4300 3200 4450 3200
+Text GLabel 4450 1900 2    50   Output ~ 0
+Arduino_VCC
+Wire Wire Line
+	2750 1900 4450 1900
+Wire Wire Line
+	2750 1900 2750 2400
+Text GLabel 4450 3450 2    50   Output ~ 0
+Arduino_GND
+Wire Wire Line
+	2750 3450 4450 3450
+Wire Wire Line
+	2750 3200 2750 3450
+Wire Wire Line
+	3000 1650 3200 1650
+Wire Wire Line
+	3200 1650 3200 2600
 $EndSCHEMATC
