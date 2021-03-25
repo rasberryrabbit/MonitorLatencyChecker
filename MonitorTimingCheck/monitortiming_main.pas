@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
-  Buttons, OpenGLContext, GL, LazSerial, UniqueInstance;
+  Buttons, Spin, OpenGLContext, GL, LazSerial, UniqueInstance;
 
 type
 
@@ -21,6 +21,7 @@ type
     LazSerial1: TLazSerial;
     Memo1: TMemo;
     OpenGLControl1: TOpenGLControl;
+    SpinEditPS: TSpinEdit;
     UniqueInstance1: TUniqueInstance;
     procedure Button1Click(Sender: TObject);
     procedure ButtonRFClick(Sender: TObject);
@@ -64,7 +65,7 @@ var
 procedure TForm1.Button1Click(Sender: TObject);
 begin
   if bComEnable then
-    LazSerial1.WriteData('NNN');
+    LazSerial1.WriteData('PS'+char(SpinEditPS.Value));
   Mouse.CursorPos:=ClientToScreen(Point(OpenGLControl1.Left+5,OpenGLControl1.Top+5));
 end;
 
@@ -132,9 +133,9 @@ var
   s, si: string;
 begin
   s:=LazSerial1.ReadData;
-  si:=s; //Copy(s,2,12);
+  si:=s[1]+IntToStr(PLongWord(@s[2])^);
   Memo1.Lines.Add(si);
-  if (not bCheck) and (s='OK'#10) then begin
+  if (not bCheck) and (Length(s)>1) and (s[1]='O') then begin
     bCheck:=True;
   end;
 end;

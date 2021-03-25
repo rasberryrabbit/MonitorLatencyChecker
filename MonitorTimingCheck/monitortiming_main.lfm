@@ -13,14 +13,14 @@ object Form1: TForm1
   OnShow = FormShow
   LCLVersion = '2.1.0.0'
   object Button1: TButton
-    Left = 176
+    Left = 192
     Height = 25
-    Top = 433
+    Top = 430
     Width = 75
-    Anchors = [akBottom]
-    Caption = 'Button1'
+    Anchors = [akLeft, akBottom]
+    Caption = 'Set'
     OnClick = Button1Click
-    TabOrder = 0
+    TabOrder = 5
   end
   object Memo1: TMemo
     Left = 8
@@ -31,7 +31,7 @@ object Form1: TForm1
     Lines.Strings = (
       'Memo1'
     )
-    TabOrder = 1
+    TabOrder = 7
   end
   object CBCOMList: TComboBox
     Left = 8
@@ -40,7 +40,7 @@ object Form1: TForm1
     Width = 100
     ItemHeight = 15
     Style = csDropDownList
-    TabOrder = 2
+    TabOrder = 0
   end
   object ButtonRF: TButton
     Left = 120
@@ -49,7 +49,7 @@ object Form1: TForm1
     Width = 75
     Caption = 'Refresh'
     OnClick = ButtonRFClick
-    TabOrder = 3
+    TabOrder = 1
   end
   object ButtonOpen: TButton
     Left = 8
@@ -58,7 +58,7 @@ object Form1: TForm1
     Width = 75
     Caption = 'Open'
     OnClick = ButtonOpenClick
-    TabOrder = 4
+    TabOrder = 2
   end
   object ButtonChk: TButton
     Left = 96
@@ -68,7 +68,7 @@ object Form1: TForm1
     Caption = 'Check'
     OnClick = ButtonChkClick
     ParentFont = False
-    TabOrder = 5
+    TabOrder = 3
   end
   object OpenGLControl1: TOpenGLControl
     Left = 8
@@ -80,6 +80,17 @@ object Form1: TForm1
     OnKeyDown = OpenGLControl1KeyDown
     OnMouseDown = OpenGLControl1MouseDown
     OnPaint = OpenGLControl1Paint
+  end
+  object SpinEditPS: TSpinEdit
+    Left = 121
+    Height = 23
+    Top = 430
+    Width = 50
+    Anchors = [akLeft, akBottom]
+    MaxValue = 64
+    MinValue = 8
+    TabOrder = 4
+    Value = 16
   end
   object LazSerial1: TLazSerial
     Active = False
