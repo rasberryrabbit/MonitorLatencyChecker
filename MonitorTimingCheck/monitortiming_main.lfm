@@ -3,7 +3,7 @@ object Form1: TForm1
   Height = 468
   Top = 146
   Width = 444
-  Caption = 'Form1'
+  Caption = 'Monitor Timing Checker'
   ClientHeight = 468
   ClientWidth = 444
   OnCreate = FormCreate
@@ -13,7 +13,7 @@ object Form1: TForm1
   OnShow = FormShow
   LCLVersion = '2.1.0.0'
   object Button1: TButton
-    Left = 192
+    Left = 200
     Height = 25
     Top = 430
     Width = 75
@@ -24,12 +24,12 @@ object Form1: TForm1
   end
   object Memo1: TMemo
     Left = 8
-    Height = 96
-    Top = 320
+    Height = 88
+    Top = 328
     Width = 424
     Anchors = [akLeft, akRight, akBottom]
     Lines.Strings = (
-      'Memo1'
+      ''
     )
     TabOrder = 7
   end
@@ -92,6 +92,15 @@ object Form1: TForm1
     TabOrder = 4
     Value = 16
   end
+  object Label1: TLabel
+    Left = 16
+    Height = 12
+    Top = 312
+    Width = 79
+    Anchors = [akLeft, akBottom]
+    Caption = 'T 0ms, F 0ms'
+    ParentColor = False
+  end
   object LazSerial1: TLazSerial
     Active = False
     BaudRate = br115200
@@ -102,12 +111,12 @@ object Form1: TForm1
     Device = 'COM13'
     RcvLineCRLF = False
     OnRxData = LazSerial1RxData
-    Left = 24
-    Top = 304
+    Left = 328
+    Top = 32
   end
   object UniqueInstance1: TUniqueInstance
     Enabled = True
-    Left = 120
-    Top = 304
+    Left = 240
+    Top = 32
   end
 end

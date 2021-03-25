@@ -18,6 +18,7 @@ type
     ButtonRF: TButton;
     ButtonOpen: TButton;
     CBCOMList: TComboBox;
+    Label1: TLabel;
     LazSerial1: TLazSerial;
     Memo1: TMemo;
     OpenGLControl1: TOpenGLControl;
@@ -58,12 +59,17 @@ uses
 
 var
   bBlack: Boolean = True;
+  flt: longword = 0;
+  tlt: longword = 0;
 
 
 { TForm1 }
 
 procedure TForm1.Button1Click(Sender: TObject);
 begin
+  Memo1.Clear;
+  flt:=0;
+  tlt:=0;
   if bComEnable then
     LazSerial1.WriteData('PS'+char(SpinEditPS.Value));
   Mouse.CursorPos:=ClientToScreen(Point(OpenGLControl1.Left+5,OpenGLControl1.Top+5));
@@ -131,13 +137,27 @@ end;
 procedure TForm1.LazSerial1RxData(Sender: TObject);
 var
   s, si: string;
+  lt: LongWord;
 begin
   s:=LazSerial1.ReadData;
-  si:=s[1]+IntToStr(PLongWord(@s[2])^);
-  Memo1.Lines.Add(si);
-  if (not bCheck) and (Length(s)>1) and (s[1]='O') then begin
-    bCheck:=True;
+  lt:=PLongWord(@s[2])^;
+  si:=s[1]+IntToStr(lt);
+  if Length(s)>1 then begin
+    case s[1] of
+    'O': if not bCheck then
+           bCheck:=True;
+    'T': if tlt<>0 then begin
+           tlt:=(tlt+lt) div 2;
+         end else
+           tlt:=lt;
+    'F': if flt<>0 then begin
+           flt:=(flt+lt) div 2;
+         end else
+           flt:=lt;
+    end;
   end;
+  label1.Caption:=Format('W->B %2.3f ms, B->W %2.3f ms',[tlt/1000,flt/1000]);
+  Memo1.Lines.Add(si);
 end;
 
 procedure TForm1.OpenGLControl1KeyDown(Sender: TObject; var Key: Word;
