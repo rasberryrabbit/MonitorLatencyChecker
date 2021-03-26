@@ -74,7 +74,7 @@ Wire Wire Line
 	3600 3200 2750 3200
 Connection ~ 2750 3200
 Text Label 3050 2800 0    50   ~ 0
-0.49V
+0.50V
 $Comp
 L Device:D D1
 U 1 1 5EE22CB3
