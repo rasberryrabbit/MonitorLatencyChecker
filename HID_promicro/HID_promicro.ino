@@ -66,8 +66,8 @@ void loop() {
       while(Serial.available()) {
         Serial.read();
       }
-#ifdef USE_RAW_TIME
       obuf[0]=(char)0x4F;
+#ifdef USE_RAW_TIME
       *rp=sendsize;
 #else
       snprintf(&obuf[1],16,"%2d",sendsize);
