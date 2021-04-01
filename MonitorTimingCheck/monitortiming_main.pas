@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
-  Buttons, Spin, OpenGLContext, GL, LazSerial, UniqueInstance;
+  Buttons, Spin, OpenGLContext, GL, LazSerial, UniqueInstance, LazSynaSer;
 
 type
 
@@ -16,13 +16,13 @@ type
     Button1: TButton;
     ButtonChk: TButton;
     ButtonRF: TButton;
-    ButtonOpen: TButton;
     CBCOMList: TComboBox;
     Label1: TLabel;
     LazSerial1: TLazSerial;
     Memo1: TMemo;
     OpenGLControl1: TOpenGLControl;
     SpinEditPS: TSpinEdit;
+    TimerUSB: TTimer;
     UniqueInstance1: TUniqueInstance;
     procedure Button1Click(Sender: TObject);
     procedure ButtonRFClick(Sender: TObject);
@@ -34,15 +34,20 @@ type
     procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure LazSerial1RxData(Sender: TObject);
+    procedure LazSerial1Status(Sender: TObject; Reason: THookSerialReason;
+      const Value: string);
     procedure OpenGLControl1KeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure OpenGLControl1MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure OpenGLControl1Paint(Sender: TObject);
+    procedure TimerUSBTimer(Sender: TObject);
   public
     bComEnable: Boolean;
     bCheck: Boolean;
+    bDeviceChange: Boolean;
 
+    procedure GetSerialPort;
     procedure GetSystemComPort;
 
   end;
@@ -55,12 +60,13 @@ implementation
 {$R *.lfm}
 
 uses
-  LazSynaSer;
+  Windows;
 
 var
   bBlack: Boolean = True;
   flt: longword = 0;
   tlt: longword = 0;
+  OldWndProc:WNDPROC;
 
 
 { TForm1 }
@@ -72,29 +78,17 @@ begin
   tlt:=0;
   if bComEnable then
     LazSerial1.WriteData('PS'+char(SpinEditPS.Value));
-  Mouse.CursorPos:=ClientToScreen(Point(OpenGLControl1.Left+5,OpenGLControl1.Top+5));
+  Mouse.CursorPos:=ClientToScreen(Classes.Point(OpenGLControl1.Left+5,OpenGLControl1.Top+5));
 end;
 
 procedure TForm1.ButtonRFClick(Sender: TObject);
 begin
-  GetSystemComPort;
+  GetSerialPort;
 end;
 
 procedure TForm1.ButtonOpenClick(Sender: TObject);
 begin
-  if bComEnable then begin
-    bComEnable:=False;
-    LazSerial1.Close;
-  end;
 
-  LazSerial1.Device:=CBCOMList.Text;
-  try
-    LazSerial1.Open;
-    bComEnable:=True;
-  except
-    on e:exception do
-      ShowMessage(e.Message);
-  end;
 end;
 
 procedure TForm1.ButtonChkClick(Sender: TObject);
@@ -105,9 +99,20 @@ begin
     LazSerial1.WriteData('NNN');
 end;
 
+//device change
+function WndCallback(Ahwnd: HWND; uMsg: UINT; wParam: WParam; lParam: LParam): LRESULT; stdcall;
+begin
+  if uMsg = WM_DEVICECHANGE then begin
+    Form1.bDeviceChange:=True;
+    Form1.TimerUSB.Enabled:=True;
+  end;
+  Result := CallWindowProc(OldWndProc, Ahwnd, uMsg, WParam, LParam);
+end;
+
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-
+  bDeviceChange:=False;
+  OldWndProc := Windows.WNDPROC(SetWindowLongPtr(Self.Handle, GWL_WNDPROC, PtrInt(@WndCallback)));
 end;
 
 procedure TForm1.FormDestroy(Sender: TObject);
@@ -131,7 +136,7 @@ end;
 
 procedure TForm1.FormShow(Sender: TObject);
 begin
-  GetSystemComPort;
+  TimerUSB.Enabled:=True;
 end;
 
 procedure TForm1.LazSerial1RxData(Sender: TObject);
@@ -139,6 +144,8 @@ var
   s, si: string;
   lt: LongWord;
 begin
+  if not bComEnable then
+    exit;
   s:=LazSerial1.ReadData;
   lt:=PLongWord(@s[2])^;
   si:=s[1]+IntToStr(lt);
@@ -158,6 +165,15 @@ begin
   end;
   label1.Caption:=Format('W->B %2.3f ms, B->W %2.3f ms',[tlt/1000,flt/1000]);
   Memo1.Lines.Add(si);
+end;
+
+procedure TForm1.LazSerial1Status(Sender: TObject; Reason: THookSerialReason;
+  const Value: string);
+begin
+  case Reason of
+  HR_Connect: bComEnable:=True;
+  HR_SerialClose: bComEnable:=False;
+  end;
 end;
 
 procedure TForm1.OpenGLControl1KeyDown(Sender: TObject; var Key: Word;
@@ -183,12 +199,63 @@ begin
   OpenGLControl1.SwapBuffers;
 end;
 
+procedure TForm1.TimerUSBTimer(Sender: TObject);
+begin
+  TimerUSB.Enabled:=False;
+  GetSerialPort;
+end;
+
 procedure TForm1.GetSystemComPort;
 begin
   CBCOMList.Items.Clear;
   CBCOMList.Items.Delimiter:=',';
   CBCOMList.Items.DelimitedText:=GetSerialPortNames;
   CBCOMList.ItemIndex:=CBCOMList.Items.Count-1;
+end;
+
+procedure TForm1.GetSerialPort;
+var
+  i, j: Integer;
+begin
+  bDeviceChange:=False;
+  GetSystemComPort;
+  Cursor:=crHourGlass;
+  for i:=0 to CBCOMList.Items.Count-1 do begin
+    LazSerial1.Close;
+    Sleep(50);
+    LazSerial1.Device:=CBCOMList.Items[i];
+    try
+      LazSerial1.Open;
+      // send dummy
+      bCheck:=False;
+      LazSerial1.WriteData('NNN');
+      // wait response
+      j:=0;
+      while j<20 do begin
+        Application.ProcessMessages;
+        Sleep(10);
+        Inc(j);
+        if bCheck or bDeviceChange then
+          break;
+      end;
+      // valid connect
+      if bCheck then begin
+        CBCOMList.ItemIndex:=i;
+        break;
+      end;
+      if bDeviceChange then
+          break;
+    except
+      on e:exception do begin
+        bComEnable:=False;
+        LazSerial1.Close;
+        Memo1.Lines.Add(e.Message);
+      end;
+    end;
+  end;
+  if bDeviceChange then
+      LazSerial1.Close;
+  Cursor:=crDefault;
 end;
 
 end.
