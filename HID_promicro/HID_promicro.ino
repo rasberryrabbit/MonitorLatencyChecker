@@ -1,13 +1,17 @@
 #include <HID-Project.h>
 #include <HID-Settings.h>
+#include <PinChangeInterrupt.h>
 
 /* 
  *  firmware for arduino pro micro
  *  16MHz 5V board.
  *  pin 8 = photodiode input.
  *  pin 9 = toggle trigger
- *  
+ *  0.245V
  */
+
+#define PIN_MOUSE 9
+#define PIN_PHOTO 8
 
 #define USE_RAW_TIME
 
@@ -15,43 +19,61 @@ const int pinLed = LED_BUILTIN; //
 uint8_t rawData[64];
 uint8_t obuf[32];
 
-int photosen=8;
-int trig=9;
-int flag=0;
+char flag='F';
+int result=0;
 unsigned long st,et;
 unsigned long re;
 int old=LOW;
-int tr_enable=1;
-int trigger_delay=200;
-unsigned long lt,ct;
+int tr_enable=0;
+unsigned long mouse_st, mouse_et;
 unsigned long *rp;
 int sendsize=16;
 
+
+void PinIntMouse(void) {
+  tr_enable=1;
+}
+
+void PinIntPhoto(void) {
+  if(!result) {
+    et=st;
+    st=micros();
+    if(digitalRead(PIN_PHOTO))
+      flag='T';
+      else flag='F';
+    result=1;
+  }
+}
+
 void setup() {
-  pinMode(photosen, INPUT);
-  pinMode(trig, INPUT_PULLUP);
+  pinMode(PIN_PHOTO, INPUT);
+  pinMode(PIN_MOUSE, INPUT_PULLUP);
   Serial.begin(115200);
   Mouse.begin();
-  tr_enable=digitalRead(trig);
+  tr_enable=0;
+  result=0;
   rp=(unsigned long *)&obuf[1];
-  lt=millis();
+  st=micros();
+  mouse_st=millis();
+  attachPCINT(digitalPinToPCINT(PIN_PHOTO), PinIntPhoto, CHANGE);
+  attachPCINT(digitalPinToPCINT(PIN_MOUSE), PinIntMouse, RISING);
 }
 
 void loop() {
-  tr_enable=digitalRead(trig);
-  if(!flag) {
-    // start trigger
-    if(!tr_enable) {
-      ct=millis();
-      if(ct-lt>=trigger_delay) {
-        lt=ct;
-        flag=1;
-        old=digitalRead(photosen);
-        Mouse.click();
-        st=micros();
-      }
-    }
-    // read serial
+  // wait changes and send
+  if(result) {
+    re=et-st;
+    obuf[0]=flag;
+#ifdef USE_RAW_TIME
+    *rp=re;
+#else
+    snprintf(&obuf[1],16,"%012ld",re);
+#endif
+    // serial print
+    Serial.write(obuf,sendsize);
+    result=0;
+  } else {
+    // respond serial
     if(Serial.available()) {
       // set send packet size
       if(Serial.readBytes(rawData,3)==3) {
@@ -74,25 +96,14 @@ void loop() {
 #endif
       Serial.write(obuf,sendsize);
     }
-  } else {
-    // wait changes
-    if(digitalRead(photosen)!=old) {
-      et=micros();
-      flag=0;
-      old=digitalRead(photosen);
-      if(old) {
-        obuf[0]='T';
-      } else {
-        obuf[0]='F';
+    if(tr_enable) {
+      mouse_et=millis();
+      if(mouse_et-mouse_st>=300) {
+        Mouse.click();
+        st=micros();
+        mouse_st=mouse_et;
       }
-      re=et-st;
-#ifdef USE_RAW_TIME
-      *rp=re;
-#else
-      snprintf(&obuf[1],16,"%012ld",re);
-#endif
-      // serial print
-      Serial.write(obuf,sendsize);
+      tr_enable=0;
     }
   }
 }
