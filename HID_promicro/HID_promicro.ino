@@ -68,7 +68,7 @@ void loop() {
   // wait changes and send
   if(result) {
     re=et-st;
-    re>>=2;
+    re>>=2; // why?
     obuf[0]=flag;
 #ifdef USE_RAW_TIME
     *rp=re;
