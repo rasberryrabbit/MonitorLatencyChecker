@@ -25,6 +25,7 @@ type
     TimerUSB: TTimer;
     UniqueInstance1: TUniqueInstance;
     procedure Button1Click(Sender: TObject);
+    procedure ButtonCalClick(Sender: TObject);
     procedure ButtonRFClick(Sender: TObject);
     procedure ButtonOpenClick(Sender: TObject);
     procedure ButtonChkClick(Sender: TObject);
@@ -79,6 +80,16 @@ begin
   if bComEnable then
     LazSerial1.WriteData('PS'+char(SpinEditPS.Value));
   Mouse.CursorPos:=ClientToScreen(Classes.Point(OpenGLControl1.Left+5,OpenGLControl1.Top+5));
+end;
+
+procedure TForm1.ButtonCalClick(Sender: TObject);
+begin
+  if bComEnable then begin
+    bBlack:=False;
+    OpenGLControl1.Paint;
+
+    LazSerial1.WriteData('CA0');
+  end;
 end;
 
 procedure TForm1.ButtonRFClick(Sender: TObject);
@@ -161,6 +172,7 @@ begin
            flt:=(flt+lt) div 2;
          end else
            flt:=lt;
+    'C': si:=s;
     end;
   end;
   label1.Caption:=Format('W->B %2.3f ms, B->W %2.3f ms',[tlt/1000,flt/1000]);
