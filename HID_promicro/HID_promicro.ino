@@ -7,11 +7,13 @@
  *  16MHz 5V board.
  *  pin 8 = photodiode input.
  *  pin 9 = toggle trigger
- *  0.245V
+ * 
  */
 
 #define PIN_MOUSE 9
 #define PIN_PHOTO 8
+#define PIN_PWM 3
+#define PWM_DEF 12
 
 #define USE_RAW_TIME
 
@@ -28,6 +30,7 @@ int tr_enable=0;
 unsigned long mouse_st, mouse_et;
 unsigned long *rp;
 int sendsize=16;
+int i, pwm0, pwm1;
 
 
 void PinIntMouse(void) {
@@ -36,8 +39,8 @@ void PinIntMouse(void) {
 
 void PinIntPhoto(void) {
   if(!result) {
-    et=st;
-    st=micros();
+    st=et;
+    et=micros();
     if(digitalRead(PIN_PHOTO))
       flag='T';
       else flag='F';
@@ -48,13 +51,15 @@ void PinIntPhoto(void) {
 void setup() {
   pinMode(PIN_PHOTO, INPUT);
   pinMode(PIN_MOUSE, INPUT_PULLUP);
+  pinMode(PIN_PWM, OUTPUT);
   Serial.begin(115200);
   Mouse.begin();
   tr_enable=0;
   result=0;
   rp=(unsigned long *)&obuf[1];
-  st=micros();
+  et=micros();
   mouse_st=millis();
+  analogWrite(PIN_PWM,PWM_DEF); // 0.233mV
   attachPCINT(digitalPinToPCINT(PIN_PHOTO), PinIntPhoto, CHANGE);
   attachPCINT(digitalPinToPCINT(PIN_MOUSE), PinIntMouse, RISING);
 }
@@ -63,6 +68,7 @@ void loop() {
   // wait changes and send
   if(result) {
     re=et-st;
+    re>>=2;
     obuf[0]=flag;
 #ifdef USE_RAW_TIME
     *rp=re;
@@ -83,6 +89,29 @@ void loop() {
             sendsize=32;
             else if(sendsize<8)
               sendsize=8;
+        } else if(rawData[0]=='C'&&rawData[1]=='A') {
+          cli();
+          pwm1=analogRead(A1);
+          for(i=0;i<50;i++) {
+            analogWrite(PIN_PWM,i);
+            delay(100);
+            pwm0=analogRead(A0);
+            if(pwm0>pwm1) {
+              i-=2;
+              i/=2;
+              break;
+            }
+          }
+          if(i<0) i=PWM_DEF;
+          analogWrite(PIN_PWM,i);
+          sei();
+#ifdef USE_RAW_TIME
+          *rp=i;
+#else
+          snprintf(&obuf[1],16,"%2d",i);
+#endif
+          obuf[0]=(char)0x43;
+          Serial.write(obuf,sendsize);
         }
       }
       while(Serial.available()) {
@@ -100,7 +129,7 @@ void loop() {
       mouse_et=millis();
       if(mouse_et-mouse_st>=300) {
         Mouse.click();
-        st=micros();
+        et=micros();
         mouse_st=mouse_et;
       }
       tr_enable=0;
