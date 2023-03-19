@@ -59,6 +59,9 @@ void setup() {
   rp=(unsigned long *)&obuf[1];
   et=micros();
   mouse_st=millis();
+  // Pin 3, 976Hz
+  TCCR3A = _BV(COM3B1) | _BV(WGM31) | _BV(WGM30);
+  TCCR3B = _BV(CS32);
   analogWrite(PIN_PWM,PWM_DEF); // 0.233mV
   attachPCINT(digitalPinToPCINT(PIN_PHOTO), PinIntPhoto, CHANGE);
   attachPCINT(digitalPinToPCINT(PIN_MOUSE), PinIntMouse, RISING);
