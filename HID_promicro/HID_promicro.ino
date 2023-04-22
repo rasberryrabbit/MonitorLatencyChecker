@@ -7,15 +7,17 @@
  *  16MHz 5V board.
  *  pin 8 = photodiode input.
  *  pin 9 = toggle trigger
- * 
+ *  pin 10 = Edge trigger
  */
 
 #define PIN_MOUSE 9
 #define PIN_PHOTO 8
+#define PIN_EDGE 10
 #define PIN_PWM 3
 #define PWM_DEF 12
 
 #define USE_RAW_TIME
+#define USE_EDGE
 
 const int pinLed = LED_BUILTIN; //
 uint8_t rawData[64];
@@ -48,8 +50,22 @@ void PinIntPhoto(void) {
   }
 }
 
+void PinIntEDGE(void) {
+  if(digitalRead(PIN_EDGE)) {
+    // rising edge
+    //et=micros();
+  } else {
+    // falling edge
+    if(result==0)
+      st=et;
+    et=micros();
+    result=1;
+  }
+}
+
 void setup() {
   pinMode(PIN_PHOTO, INPUT);
+  pinMode(PIN_EDGE, INPUT);
   pinMode(PIN_MOUSE, INPUT_PULLUP);
   pinMode(PIN_PWM, OUTPUT);
   Serial.begin(115200);
@@ -63,24 +79,30 @@ void setup() {
   TCCR3A = _BV(COM3B1) | _BV(WGM31) | _BV(WGM30);
   TCCR3B = _BV(CS32);
   analogWrite(PIN_PWM,PWM_DEF); // 0.233mV
+#ifndef USE_EDGE
   attachPCINT(digitalPinToPCINT(PIN_PHOTO), PinIntPhoto, CHANGE);
+#else  
+  attachPCINT(digitalPinToPCINT(PIN_EDGE), PinIntEDGE, CHANGE);
+#endif
   attachPCINT(digitalPinToPCINT(PIN_MOUSE), PinIntMouse, RISING);
 }
 
 void loop() {
   // wait changes and send
   if(result) {
+    cli();
     re=et-st;
-    re>>=2; // why?
+    //re>>=2; // why?
     obuf[0]=flag;
 #ifdef USE_RAW_TIME
     *rp=re;
 #else
     snprintf(&obuf[1],16,"%012ld",re);
 #endif
+    result=0;
+    sei();
     // serial print
     Serial.write(obuf,sendsize);
-    result=0;
   } else {
     // respond serial
     if(Serial.available()) {
