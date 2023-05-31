@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
-  Buttons, Spin, OpenGLContext, GL, LazSerial, UniqueInstance, LazSynaSer;
+  Buttons, Spin, OpenGLContext, GL, LazSerial, UniqueInstance, LazSynaSer,
+  UExceptionLogger;
 
 type
 
@@ -17,6 +18,7 @@ type
     ButtonChk: TButton;
     ButtonRF: TButton;
     CBCOMList: TComboBox;
+    ExceptionLogger1: TExceptionLogger;
     Label1: TLabel;
     LazSerial1: TLazSerial;
     Memo1: TMemo;
@@ -122,6 +124,7 @@ end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
+  Application.OnException:=@ExceptionLogger1.HandleException;
   bDeviceChange:=False;
   OldWndProc := Windows.WNDPROC(SetWindowLongPtr(Self.Handle, GWL_WNDPROC, PtrInt(@WndCallback)));
 end;

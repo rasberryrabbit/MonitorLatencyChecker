@@ -18,8 +18,9 @@
 
 #define USE_RAW_TIME
 #define USE_EDGE
+#define USE_MOUSE_INT
 
-const int pinLed = LED_BUILTIN; //
+const int PIN_LED = LED_BUILTIN; //
 uint8_t rawData[64];
 uint8_t obuf[32];
 
@@ -34,40 +35,40 @@ unsigned long *rp;
 int sendsize=16;
 int i, pwm0, pwm1;
 
-
+#ifdef USE_MOUSE_INT
 void PinIntMouse(void) {
   tr_enable=1;
 }
+#endif
 
+#ifndef USE_EDGE
 void PinIntPhoto(void) {
   if(!result) {
     st=et;
     et=micros();
-    if(digitalRead(PIN_PHOTO))
+    if(digitalRead(PIN_PHOTO)==HIGH)
       flag='T';
       else flag='F';
     result=1;
   }
 }
-
+#else
 void PinIntEDGE(void) {
-  if(digitalRead(PIN_EDGE)) {
-    // rising edge
-    //et=micros();
-  } else {
-    // falling edge
-    if(result==0)
-      st=et;
-    et=micros();
-    result=1;
-  }
+  // falling edge
+  if(result==0)
+    st=et;
+  et=micros();
+  result=1;
 }
+#endif
 
 void setup() {
   pinMode(PIN_PHOTO, INPUT);
   pinMode(PIN_EDGE, INPUT);
   pinMode(PIN_MOUSE, INPUT_PULLUP);
   pinMode(PIN_PWM, OUTPUT);
+  pinMode(PIN_LED, OUTPUT);
+  
   Serial.begin(115200);
   Mouse.begin();
   tr_enable=0;
@@ -84,7 +85,10 @@ void setup() {
 #else  
   attachPCINT(digitalPinToPCINT(PIN_EDGE), PinIntEDGE, CHANGE);
 #endif
+
+#ifdef USE_MOUSE_INT
   attachPCINT(digitalPinToPCINT(PIN_MOUSE), PinIntMouse, RISING);
+#endif
 }
 
 void loop() {
@@ -92,7 +96,6 @@ void loop() {
   if(result) {
     cli();
     re=et-st;
-    //re>>=2; // why?
     obuf[0]=flag;
 #ifdef USE_RAW_TIME
     *rp=re;
@@ -150,14 +153,20 @@ void loop() {
 #endif
       Serial.write(obuf,sendsize);
     }
+#ifndef USE_MOUSE_INT
+    if(digitalRead(PIN_MOUSE)==LOW) {
+#else
     if(tr_enable) {
+#endif
       mouse_et=millis();
       if(mouse_et-mouse_st>=300) {
         Mouse.click();
         et=micros();
         mouse_st=mouse_et;
       }
+#ifdef USE_MOUSE_INT
       tr_enable=0;
+#endif
     }
   }
 }

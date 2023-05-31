@@ -28,6 +28,9 @@
     </RunParams>
     <RequiredPackages>
       <Item>
+        <PackageName Value="ExceptionLogger"/>
+      </Item>
+      <Item>
         <PackageName Value="LazOpenGLContext"/>
       </Item>
       <Item>

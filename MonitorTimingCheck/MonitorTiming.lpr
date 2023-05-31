@@ -11,7 +11,7 @@ uses
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms, lazopenglcontext, MonitorTiming_main, uhidpas, LazSerialPort,
-  uniqueinstance_package, uForm_face
+  uniqueinstance_package, ExceptionLogger, uForm_face
   { you can add units after this };
 
 {$R *.res}
